@@ -99,6 +99,7 @@ import static java.lang.String.format;
 import static java.math.RoundingMode.UNNECESSARY;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.ENGLISH;
+import static java.util.stream.Collectors.joining;
 
 public class MySqlClient
         extends BaseJdbcClient
@@ -308,8 +309,11 @@ public class MySqlClient
     protected void copyTableSchema(Connection connection, String catalogName, String schemaName, String tableName, String newTableName, List<String> columnNames)
     {
         String sql = format(
-                "CREATE TABLE %s LIKE %s",
+                "CREATE TABLE %s AS SELECT %s FROM %s WHERE 0 = 1",
                 quoted(catalogName, schemaName, newTableName),
+                columnNames.stream()
+                        .map(this::quoted)
+                        .collect(joining(", ")),
                 quoted(catalogName, schemaName, tableName));
         execute(connection, sql);
     }
